@@ -15,6 +15,10 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _showSuggestions = false;
+  bool _showSearchControls = false;
+
+  // Responsive breakpoint
+  static const double mobileBreakpoint = 664.0;
 
   @override
   void initState() {
@@ -33,8 +37,14 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     super.dispose();
   }
 
+  bool _isMobile(BuildContext context) {
+    return MediaQuery.of(context).size.width <= mobileBreakpoint;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isMobile = _isMobile(context);
+
     return Consumer<SearchProvider>(
       builder: (context, searchProvider, child) {
         // Update controller if selected character changes externally
@@ -44,156 +54,257 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
         return Column(
           children: [
-            // Search input field
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[300]!),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
-                ],
-              ),
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                decoration: InputDecoration(
-                  hintText: 'Search for Chinese characters...',
-                  hintStyle: TextStyle(color: Colors.grey[500]),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                  suffixIcon:
-                      _controller.text.isNotEmpty
-                          ? IconButton(
-                            icon: Icon(Icons.clear, color: Colors.grey[600]),
-                            onPressed: () {
-                              _controller.clear();
-                              searchProvider.clearSearch();
-                              setState(() {
-                                _showSuggestions = false;
-                              });
-                            },
-                          )
-                          : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                ),
-                style: const TextStyle(fontSize: 18),
-                onChanged: (value) {
-                  searchProvider.updateQuery(value);
-                  setState(() {
-                    _showSuggestions = value.isNotEmpty && _focusNode.hasFocus;
-                  });
-                },
-                onSubmitted: (value) {
-                  if (value.isNotEmpty) {
-                    _handleSearch(value);
-                  }
-                },
-              ),
-            ),
+            // Search input field with controls
+            _buildSearchInput(isMobile, searchProvider),
 
             // Search suggestions dropdown
-            if (_showSuggestions && searchProvider.suggestions.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                constraints: const BoxConstraints(maxHeight: 200),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: searchProvider.suggestions.length,
-                  itemBuilder: (context, index) {
-                    final suggestion = searchProvider.suggestions[index];
-                    return ListTile(
-                      leading: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Text(suggestion, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-                        ),
-                      ),
-                      title: Text(suggestion, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                      subtitle: Text(
-                        'Tap to explore character',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      onTap: () {
-                        _selectCharacter(suggestion);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
+            if (_showSuggestions) _buildSuggestions(isMobile, searchProvider),
 
-            // Loading indicator
-            if (searchProvider.isSearching) ...[
-              const SizedBox(height: 16),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                  SizedBox(width: 12),
-                  Text('Searching...'),
-                ],
-              ),
-            ],
+            // Search controls (photo/file upload)
+            if (_showSearchControls) _buildSearchControls(isMobile),
           ],
         );
       },
     );
   }
 
-  void _handleSearch(String query) {
-    final searchProvider = context.read<SearchProvider>();
-    final graphProvider = context.read<GraphProvider>();
+  Widget _buildSearchInput(bool isMobile, SearchProvider searchProvider) {
+    return Container(
+      height: 32, // --search-input-height from CSS
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFFFF), // --input-background-color
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1AEEEEEE), // --primary-input-box-shadow
+            blurRadius: 3,
+            offset: Offset(0, 2),
+            spreadRadius: 1,
+          ),
+        ],
+        border: Border.all(color: const Color(0x33333333)),
+      ),
+      child: Row(
+        children: [
+          // Search icon (explore button equivalent)
+          Container(
+            width: 32,
+            height: 32,
+            padding: const EdgeInsets.all(6),
+            child: Icon(Icons.search, size: isMobile ? 16 : 20, color: const Color(0xFF777777)),
+          ),
 
-    if (query.length == 1) {
-      // Single character - select for exploration
-      _selectCharacter(query);
-    } else {
-      // Multi-character query - perform search
-      searchProvider.search(query);
-    }
+          // Search input field
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              style: TextStyle(
+                fontSize: isMobile ? 16 : 20, // --search-font-size adapted for mobile
+                fontWeight: FontWeight.w300,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Search...',
+                hintStyle: TextStyle(color: const Color(0xFF999999), fontSize: isMobile ? 16 : 20),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: isMobile ? 6 : 8),
+              ),
+              textInputAction: TextInputAction.search,
+              autocorrect: false,
+              enableSuggestions: false,
+              onChanged: (value) {
+                setState(() {
+                  _showSuggestions = value.isNotEmpty && _focusNode.hasFocus;
+                });
+                searchProvider.updateQuery(value);
+              },
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  _performSearch(value, searchProvider);
+                }
+              },
+              onTap: () {
+                if (!isMobile) {
+                  setState(() {
+                    _showSearchControls = !_showSearchControls;
+                  });
+                }
+              },
+            ),
+          ),
 
-    // Hide suggestions and unfocus
-    setState(() {
-      _showSuggestions = false;
-    });
-    _focusNode.unfocus();
+          // Additional controls button (mobile only)
+          if (isMobile)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _showSearchControls = !_showSearchControls;
+                });
+              },
+              child: Container(
+                width: 32,
+                height: 32,
+                padding: const EdgeInsets.all(6),
+                child: Icon(
+                  _showSearchControls ? Icons.keyboard_arrow_up : Icons.more_vert,
+                  size: 16,
+                  color: const Color(0xFF777777),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
-  void _selectCharacter(String character) {
-    final searchProvider = context.read<SearchProvider>();
-    final graphProvider = context.read<GraphProvider>();
+  Widget _buildSuggestions(bool isMobile, SearchProvider searchProvider) {
+    // Get suggestions from searchProvider
+    final suggestions = searchProvider.suggestions;
 
-    print('🔍 Search: Selecting character "$character"');
+    if (suggestions.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    // Update the text field
-    _controller.text = character;
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFFFF),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 8, offset: Offset(0, 2))],
+      ),
+      constraints: BoxConstraints(maxHeight: isMobile ? 200 : 300),
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: suggestions.length,
+        itemBuilder: (context, index) {
+          final suggestion = suggestions[index];
+          return ListTile(
+            dense: isMobile,
+            title: Text(suggestion, style: TextStyle(fontSize: isMobile ? 16 : 18, fontWeight: FontWeight.w400)),
+            onTap: () {
+              _controller.text = suggestion;
+              _performSearch(suggestion, searchProvider);
+              setState(() {
+                _showSuggestions = false;
+              });
+            },
+          );
+        },
+      ),
+    );
+  }
 
-    // Select character for exploration (equivalent to JavaScript character selection)
-    searchProvider.selectCharacter(character);
-    print('🔍 Search: Selected character set to "${searchProvider.selectedCharacter}"');
+  Widget _buildSearchControls(bool isMobile) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      height: _showSearchControls ? (isMobile ? 60 : 50) : 0,
+      child:
+          _showSearchControls
+              ? Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 10 : 14, // --controls-padding adapted
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F8F8),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0x33333333)),
+                ),
+                child: Row(
+                  children: [
+                    // Photo search button
+                    Expanded(
+                      child: _buildSearchControlButton(
+                        icon: Icons.camera_alt,
+                        label: 'Photo',
+                        isMobile: isMobile,
+                        onTap: () => _handlePhotoSearch(),
+                      ),
+                    ),
 
-    // Generate graph for the character
-    graphProvider.generateGraph(character);
-    print('🔍 Search: Graph generation triggered for "$character"');
+                    const SizedBox(width: 12),
 
-    // Hide suggestions and unfocus
+                    // File search button
+                    Expanded(
+                      child: _buildSearchControlButton(
+                        icon: Icons.file_upload,
+                        label: 'File',
+                        isMobile: isMobile,
+                        onTap: () => _handleFileSearch(),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildSearchControlButton({
+    required IconData icon,
+    required String label,
+    required bool isMobile,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12, vertical: isMobile ? 6 : 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFFFF),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0x33333333)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: isMobile ? 16 : 18, color: const Color(0xFF555555)),
+            SizedBox(width: isMobile ? 4 : 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: isMobile ? 12 : 14,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF555555),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _performSearch(String query, SearchProvider searchProvider) {
+    _focusNode.unfocus();
     setState(() {
       _showSuggestions = false;
+      _showSearchControls = false;
     });
-    _focusNode.unfocus();
+
+    // Trigger search in provider
+    searchProvider.selectCharacter(query);
+
+    // Update graph provider
+    final graphProvider = Provider.of<GraphProvider>(context, listen: false);
+    graphProvider.generateGraph(query);
+
+    print('🔍 SearchBar: Searching for "$query"');
+  }
+
+  void _handlePhotoSearch() {
+    // TODO: Implement photo search functionality
+    print('📸 Photo search requested');
+    setState(() {
+      _showSearchControls = false;
+    });
+  }
+
+  void _handleFileSearch() {
+    // TODO: Implement file search functionality
+    print('📁 File search requested');
+    setState(() {
+      _showSearchControls = false;
+    });
   }
 }

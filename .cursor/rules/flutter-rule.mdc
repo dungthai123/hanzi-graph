@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+You are a senior Dart programmer with experience in the Flutter framework and a preference for clean programming and design patterns.
+
+Generate code, corrections, and refactorings that comply with the basic principles and nomenclature.
+
+### Basic Principles
+Follow mvvp lite archetecture
+lib/
+└── modules/
+    └── feature_name/
+        ├── model/
+        │   └── todo_model.dart
+        ├── datasource/
+        │   └── todo_datasource.dart
+        ├── repository/
+        │   └── todo_repository.dart
+        ├── viewmodel/
+        │   └── todo_viewmodel.dart
+        └── view/
+            └── todo_screen.dart
+
+
+- Use getIt to manage dependencies
+  - Use singleton for services and repositories
+  - Use factory for use cases
+  - Use lazy singleton for controllers

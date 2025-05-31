@@ -277,23 +277,20 @@ class _GraphWidgetState extends State<GraphWidget> {
                   .last // Use the actual character from the path
               : node.character;
 
-      // Update search and generate new graph (like JavaScript nodeTapHandler)
-      searchProvider.selectCharacter(character);
-
       if (graphProvider.graphMode == 'components') {
-        // In components mode, trigger component tree generation like JavaScript
-        graphProvider.generateComponentsTree(character);
-        // Also dispatch explore-update equivalent
-        print('Components node tapped: $character');
+        // In components mode, just show the meaning like JavaScript renderComponents
+        // Don't navigate to a new graph, just update the search selection
+        searchProvider.selectCharacter(character);
+        print('Components node tapped: $character (showing meaning only, no navigation)');
       } else {
-        // In graph mode, generate normal graph
+        // In graph mode, navigate to new graph like JavaScript nodeTapHandler
+        searchProvider.selectCharacter(character);
         graphProvider.generateGraph(character);
+
+        // Add to current path (equivalent to JavaScript currentPath.push)
+        graphProvider.addToCurrentPath(character);
+        print('Graph node tapped: ${node.character} -> character: $character (navigating to new graph)');
       }
-
-      // Add to current path (equivalent to JavaScript currentPath.push)
-      graphProvider.addToCurrentPath(character);
-
-      print('Node tapped: ${node.character} -> character: $character');
     } catch (e) {
       print('Error handling node tap: $e');
     }

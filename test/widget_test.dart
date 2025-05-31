@@ -5,19 +5,24 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:hanzi_graph/main.dart';
-import 'package:hanzi_graph/core/app_initializer.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Create a mock app initializer for testing
-    final appInitializer = AppInitializer();
-
+  testWidgets('HanziGraph app starts correctly', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp(appInitializer: appInitializer));
+    await tester.pumpWidget(const HanziGraphApp());
 
-    // Verify that the app starts with the walkthrough
-    expect(find.text('Welcome to HanziGraph'), findsOneWidget);
+    // Verify that the app shows loading screen initially
+    expect(find.text('Loading...'), findsOneWidget);
+    expect(find.text('HanziGraph'), findsOneWidget);
+
+    // Wait for initialization to complete
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+
+    // After initialization, we should see the main app
+    expect(find.text('Loading...'), findsNothing);
   });
 }

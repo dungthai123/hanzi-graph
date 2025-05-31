@@ -85,8 +85,8 @@ class _CharacterExplorationWidgetState extends State<CharacterExplorationWidget>
             // Tab bar
             _buildTabBar(),
 
-            // Tab content
-            Expanded(
+            // Tab content - Use Flexible instead of Expanded to prevent overflow
+            Flexible(
               child: TabBarView(
                 controller: _tabController,
                 children: [
@@ -109,18 +109,22 @@ class _CharacterExplorationWidgetState extends State<CharacterExplorationWidget>
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                'Error loading character: ${widget.character}',
-                style: const TextStyle(fontSize: 16, color: Colors.red),
-              ),
-              const SizedBox(height: 8),
-              Text('Error: ${e.toString()}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading character: ${widget.character}',
+                  style: const TextStyle(fontSize: 16, color: Colors.red),
+                ),
+                const SizedBox(height: 8),
+                Text('Error: ${e.toString()}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
           ),
         ),
       );
@@ -128,56 +132,61 @@ class _CharacterExplorationWidgetState extends State<CharacterExplorationWidget>
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.translate, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.translate, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
 
-          // Walkthrough instructions like JavaScript components page
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[200]!),
+            // Walkthrough instructions like JavaScript components page
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Select a character to explore',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey[700]),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'To get started, search for any character.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'The diagram shows the components of each character, the components of its components, and so on.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'The diagram is color-coded by tone. When a component has similar pronunciation with its parent, a label with pinyin (initial, final, or both) is shown.',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                Text(
-                  'Select a character to explore',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey[700]),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'To get started, search for any character.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'The diagram shows the components of each character, the components of its components, and so on.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'The diagram is color-coded by tone. When a component has similar pronunciation with its parent, a label with pinyin (initial, final, or both) is shown.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCharacterHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
@@ -200,7 +209,7 @@ class _CharacterExplorationWidgetState extends State<CharacterExplorationWidget>
               child: Text(
                 widget.character,
                 style: TextStyle(
-                  fontSize: 48,
+                  fontSize: 30,
                   fontWeight: FontWeight.w400,
                   color: _getTextColor(_getCharacterColor(widget.character)),
                 ),
@@ -217,7 +226,7 @@ class _CharacterExplorationWidgetState extends State<CharacterExplorationWidget>
               children: [
                 Text(
                   'Character: ${widget.character}',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
                 Consumer<DataProvider>(
@@ -231,7 +240,7 @@ class _CharacterExplorationWidgetState extends State<CharacterExplorationWidget>
                             Text(
                               definition.pinyin.isNotEmpty ? definition.pinyin : 'No pinyin available',
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w500,
                                 color: _getCharacterColor(widget.character),
                               ),
@@ -306,16 +315,17 @@ class _MeaningTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Consumer<DataProvider>(
-        builder: (context, dataProvider, child) {
-          try {
-            final definition = dataProvider.getDefinition(character);
-            final sentences = dataProvider.getSentences(character);
+    return Consumer<DataProvider>(
+      builder: (context, dataProvider, child) {
+        try {
+          final definition = dataProvider.getDefinition(character);
+          final sentences = dataProvider.getSentences(character);
 
-            return Column(
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Definitions section
                 _buildDefinitionsSection(definition),
@@ -325,12 +335,16 @@ class _MeaningTab extends StatelessWidget {
                 // Examples section
                 _buildExamplesSection(sentences),
               ],
-            );
-          } catch (e) {
-            debugPrint('Error in MeaningTab: $e');
-            return Center(
+            ),
+          );
+        } catch (e) {
+          debugPrint('Error in MeaningTab: $e');
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
                   const SizedBox(height: 16),
@@ -342,10 +356,10 @@ class _MeaningTab extends StatelessWidget {
                   Text('Error: ${e.toString()}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
-            );
-          }
-        },
-      ),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -500,35 +514,6 @@ class _ComponentsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Instructions (like JavaScript explore.js explanation)
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue[200]!),
-            ),
-            child: const Text(
-              'Click any character in the diagram above to update the tree.',
-              style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Character component details (like JavaScript renderComponents)
-          _buildComponentDetails(context),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildComponentDetails(BuildContext context) {
     return Consumer<DataProvider>(
       builder: (context, dataProvider, child) {
         try {
@@ -536,57 +521,99 @@ class _ComponentsTab extends StatelessWidget {
           final characterData = componentsData[character];
 
           if (characterData == null) {
-            return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-              child: Text(
-                'No component data found for "$character"',
-                style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                  child: Text(
+                    'No component data found for "$character"',
+                    style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                  ),
+                ),
               ),
             );
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Character header (like JavaScript renderCharacterHeader)
-              _buildCharacterHeader(context),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Instructions (like JavaScript explore.js explanation)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: const Text(
+                    'Click any character in the diagram above to update the tree.',
+                    style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+                  ),
+                ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-              // Pronunciations (like JavaScript renderPronunciations)
-              _buildPronunciations(context),
-
-              const SizedBox(height: 16),
-
-              // Components section (like JavaScript renderRelatedCharacters)
-              _buildComponentsSection(characterData),
-
-              const SizedBox(height: 16),
-
-              // Compounds section (like JavaScript renderRelatedCharacters)
-              _buildCompoundsSection(characterData),
-            ],
+                // Character component details (like JavaScript renderComponents)
+                _buildComponentDetails(context, characterData),
+              ],
+            ),
           );
         } catch (e) {
           debugPrint('Error in ComponentsTab: $e');
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.red[50],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red[200]!),
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                const SizedBox(height: 8),
-                Text('Error loading component data for: $character', style: const TextStyle(color: Colors.red)),
-              ],
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const SizedBox(height: 8),
+                    Text('Error loading component data for: $character', style: const TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
             ),
           );
         }
       },
+    );
+  }
+
+  Widget _buildComponentDetails(BuildContext context, Map<String, dynamic> characterData) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Character header (like JavaScript renderCharacterHeader)
+        _buildCharacterHeader(context),
+
+        const SizedBox(height: 16),
+
+        // Pronunciations (like JavaScript renderPronunciations)
+        _buildPronunciations(context),
+
+        const SizedBox(height: 16),
+
+        // Components section (like JavaScript renderRelatedCharacters)
+        _buildComponentsSection(characterData),
+
+        const SizedBox(height: 16),
+
+        // Compounds section (like JavaScript renderRelatedCharacters)
+        _buildCompoundsSection(characterData),
+      ],
     );
   }
 
@@ -823,6 +850,7 @@ class _StatsTab extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [_buildFrequencyStats(), const SizedBox(height: 24), _buildUsageStats(context)],
       ),
     );
@@ -955,6 +983,7 @@ class _FlowTab extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Text('Usage Flow Diagram', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
